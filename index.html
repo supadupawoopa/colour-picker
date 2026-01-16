@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Chromaforge — Color Picking Studio</title>
+  <title>Chromaforge</title>
   <style>
     :root {
       --ink: #1b1a16;
@@ -44,7 +44,19 @@
       flex-wrap: wrap;
       gap: 14px;
       align-items: center;
-      justify-content: space-between;
+      justify-content: flex-start;
+    }
+
+    .title-block {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .title-block .subtitle {
+      max-width: 460px;
+      margin: 0;
     }
 
     .title {
@@ -53,6 +65,11 @@
       letter-spacing: 0.6px;
       text-transform: none;
       text-shadow: 0 8px 18px rgba(58, 46, 95, 0.15);
+      background: var(--berry);
+      color: #fff;
+      padding: 6px 18px 8px;
+      border-radius: 999px;
+      display: inline-block;
     }
 
     .subtitle {
@@ -392,14 +409,13 @@
 <body>
   <div class="frame">
     <header>
-      <div>
-        <div class="pill">studio mode</div>
+      <div class="title-block">
         <div class="title">Chromaforge</div>
+        <p class="subtitle">
+          Sculpt bold palettes, capture color stories, and export the exact shades you need.
+          Tap any swatch to copy its hex value.
+        </p>
       </div>
-      <p class="subtitle">
-        Sculpt bold palettes, capture color stories, and export the exact shades you need.
-        Tap any swatch to copy its hex value.
-      </p>
     </header>
 
     <section class="stage">
@@ -756,6 +772,16 @@
   </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
 
 
 
