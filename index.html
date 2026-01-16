@@ -1,0 +1,764 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chromaforge — Color Picking Studio</title>
+  <style>
+    :root {
+      --ink: #1b1a16;
+      --cream: #f7f1e4;
+      --citrus: #ffb300;
+      --sunset: #ff6b6b;
+      --teal: #1fb7a6;
+      --berry: #3a2e5f;
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
+      --heading-font: "Garamond", "Georgia", "Times New Roman", serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+      color: var(--ink);
+      background:
+        radial-gradient(1400px 700px at 10% 10%, rgba(255, 229, 180, 0.9), transparent 60%),
+        radial-gradient(900px 500px at 90% 20%, rgba(31, 183, 166, 0.35), transparent 60%),
+        linear-gradient(130deg, #fff8ee 0%, #f1e6d1 40%, #fdf6ea 100%);
+      padding: 32px 18px 54px;
+    }
+
+    .frame {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      gap: 24px;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .title {
+      font-size: clamp(2.2rem, 3.5vw, 3.8rem);
+      font-family: var(--heading-font);
+      letter-spacing: 0.6px;
+      text-transform: none;
+      text-shadow: 0 8px 18px rgba(58, 46, 95, 0.15);
+    }
+
+    .subtitle {
+      max-width: 520px;
+      font-size: 1.05rem;
+      line-height: 1.6;
+    }
+
+    .pill {
+      padding: 8px 16px;
+      border-radius: 999px;
+      background: var(--berry);
+      color: #fff;
+      font-size: 0.9rem;
+      letter-spacing: 0.06em;
+      text-transform: none;
+    }
+
+    h2 {
+      font-family: var(--heading-font);
+      letter-spacing: 0.4px;
+      margin: 8px 0 6px;
+    }
+
+    .stage {
+      display: grid;
+      grid-template-columns: minmax(260px, 1fr) minmax(280px, 1.2fr);
+      gap: 24px;
+    }
+
+    .panel {
+      background: rgba(255, 255, 255, 0.75);
+      border-radius: 26px;
+      padding: 24px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(6px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .panel::after {
+      content: "";
+      position: absolute;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 179, 0, 0.35), transparent 70%);
+      right: -40px;
+      top: -40px;
+      z-index: 0;
+    }
+
+    .panel > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .picker-wrap {
+      display: grid;
+      gap: 18px;
+    }
+
+    .picker-main {
+      display: grid;
+      gap: 14px;
+    }
+
+    .rainbow-board {
+      width: 100%;
+      height: 230px;
+      border-radius: 22px;
+      border: 2px solid rgba(0, 0, 0, 0.08);
+      box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.08), 0 14px 28px rgba(0, 0, 0, 0.12);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .rainbow-board canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .board-indicator {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      box-shadow: 0 8px 14px rgba(0, 0, 0, 0.25);
+      position: absolute;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .slider-group {
+      display: grid;
+      gap: 12px;
+      font-family: "Trebuchet MS", Verdana, sans-serif;
+    }
+
+    .slider {
+      display: grid;
+      gap: 6px;
+      font-size: 0.8rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .slider-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.72rem;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--sunset);
+    }
+
+    .color-well {
+      width: 100%;
+      height: 54px;
+      border-radius: 16px;
+      border: 2px solid rgba(0, 0, 0, 0.08);
+      box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.08);
+      transition: transform 0.4s ease;
+    }
+
+    .color-well:hover {
+      transform: translateY(-3px);
+    }
+
+    .picker-controls {
+      display: grid;
+      gap: 12px;
+    }
+
+
+
+    .stat {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.9);
+      font-family: "Trebuchet MS", Verdana, sans-serif;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      font-size: 0.78rem;
+    }
+
+    .stat span {
+      font-size: 0.95rem;
+      letter-spacing: normal;
+      text-transform: none;
+      font-weight: 600;
+    }
+
+    .actions {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-family: "Trebuchet MS", Verdana, sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    button.primary {
+      background: var(--sunset);
+      color: #fff;
+      box-shadow: 0 12px 24px rgba(255, 107, 107, 0.3);
+    }
+
+    button.secondary {
+      background: var(--teal);
+      color: #fff;
+      box-shadow: 0 12px 24px rgba(31, 183, 166, 0.3);
+    }
+
+    button.ghost {
+      background: #fff4d9;
+      color: #5b471e;
+      box-shadow: 0 10px 20px rgba(130, 94, 20, 0.2);
+    }
+
+    button:hover {
+      transform: translateY(-3px);
+    }
+
+    .mixboard {
+      display: grid;
+      gap: 18px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 12px;
+    }
+
+    .chip {
+      border-radius: 16px;
+      min-height: 90px;
+      padding: 12px;
+      display: grid;
+      align-content: space-between;
+      color: #fff;
+      font-family: "Trebuchet MS", Verdana, sans-serif;
+      letter-spacing: 0.04em;
+      font-size: 0.75rem;
+      box-shadow: 0 12px 22px rgba(0, 0, 0, 0.15);
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+
+    .chip:hover {
+      transform: translateY(-4px) scale(1.02);
+    }
+
+    .chip span {
+      display: block;
+      font-size: 0.85rem;
+      letter-spacing: normal;
+      text-transform: none;
+    }
+
+    .history {
+      display: grid;
+      gap: 12px;
+    }
+
+    .history-list {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    }
+
+    .history-item {
+      border-radius: 14px;
+      padding: 12px;
+      background: #fff;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-family: "Trebuchet MS", Verdana, sans-serif;
+      font-size: 0.78rem;
+    }
+
+    .swatch {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .toast {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      background: #1b1a16;
+      color: #fff;
+      padding: 12px 18px;
+      border-radius: 12px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      font-family: "Trebuchet MS", Verdana, sans-serif;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-size: 0.7rem;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 900px) {
+      .stage {
+        grid-template-columns: 1fr;
+      }
+
+      .subtitle {
+        font-size: 1rem;
+      }
+
+      .history-list {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      }
+    }
+
+    @keyframes floatIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .panel, header {
+      animation: floatIn 0.7s ease both;
+    }
+
+    header {
+      animation-delay: 0.05s;
+    }
+
+    .panel:nth-of-type(1) {
+      animation-delay: 0.1s;
+    }
+
+    .panel:nth-of-type(2) {
+      animation-delay: 0.2s;
+    }
+
+    .panel:nth-of-type(3) {
+      animation-delay: 0.3s;
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <header>
+      <div>
+        <div class="pill">studio mode</div>
+        <div class="title">Chromaforge</div>
+      </div>
+      <p class="subtitle">
+        Sculpt bold palettes, capture color stories, and export the exact shades you need.
+        Tap any swatch to copy its hex value.
+      </p>
+    </header>
+
+    <section class="stage">
+      <div class="panel picker-wrap">
+        <div class="picker-main">
+          <div class="rainbow-board" id="rainbowBoardWrap">
+            <canvas id="rainbowBoard" aria-label="Rainbow color board"></canvas>
+            <div class="board-indicator" id="boardIndicator"></div>
+          </div>
+          <div class="slider-group">
+            <div class="slider">
+              <div class="slider-row"><span>Hue</span><span id="hueValue">0</span></div>
+              <input type="range" id="hueRange" min="0" max="360" value="0" />
+            </div>
+            <div class="slider">
+              <div class="slider-row"><span>Saturation</span><span id="satValue">100%</span></div>
+              <input type="range" id="satRange" min="0" max="100" value="100" />
+            </div>
+            <div class="slider">
+              <div class="slider-row"><span>Lightness</span><span id="lightValue">50%</span></div>
+              <input type="range" id="lightRange" min="0" max="100" value="50" />
+            </div>
+          </div>
+        </div>
+        <div class="color-well" id="colorWell"></div>
+        <div class="picker-controls">
+          <div class="stat">Hex <span id="hexValue">#ff6b6b</span></div>
+          <div class="stat">RGB <span id="rgbValue">255, 107, 107</span></div>
+          <div class="stat">HSL <span id="hslValue">0, 100%, 71%</span></div>
+        </div>
+        <div class="actions">
+          <button class="primary" id="copyHex">Copy Hex</button>
+          <button class="secondary" id="randomColor">Surprise Me</button>
+          <button class="ghost" id="saveColor">Save Swatch</button>
+        </div>
+      </div>
+
+      <div class="panel mixboard">
+        <div>
+          <div class="pill">palette maker</div>
+          <h2>Mixboard</h2>
+          <p class="subtitle">Build quick palettes by shifting lightness and saturation around your pick.</p>
+        </div>
+        <div class="grid" id="paletteGrid"></div>
+      </div>
+    </section>
+
+    <section class="panel history">
+      <div>
+        <div class="pill">saved</div>
+        <h2>Swatch Library</h2>
+        <p class="subtitle">Your recent colors live here for fast recall.</p>
+      </div>
+      <div class="history-list" id="historyList"></div>
+    </section>
+  </div>
+
+  <div class="toast" id="toast">Copied to clipboard</div>
+
+  <script>
+    const colorWell = document.getElementById("colorWell");
+    const rainbowBoard = document.getElementById("rainbowBoard");
+    const rainbowBoardWrap = document.getElementById("rainbowBoardWrap");
+    const boardIndicator = document.getElementById("boardIndicator");
+    const hexValue = document.getElementById("hexValue");
+    const rgbValue = document.getElementById("rgbValue");
+    const hslValue = document.getElementById("hslValue");
+    const hueRange = document.getElementById("hueRange");
+    const satRange = document.getElementById("satRange");
+    const lightRange = document.getElementById("lightRange");
+    const hueValue = document.getElementById("hueValue");
+    const satValue = document.getElementById("satValue");
+    const lightValue = document.getElementById("lightValue");
+    const paletteGrid = document.getElementById("paletteGrid");
+    const historyList = document.getElementById("historyList");
+    const toast = document.getElementById("toast");
+
+    const history = [];
+
+    const showToast = (message) => {
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(showToast.timeoutId);
+      showToast.timeoutId = setTimeout(() => toast.classList.remove("show"), 1800);
+    };
+
+    const hexToRgb = (hex) => {
+      const clean = hex.replace("#", "");
+      const bigint = parseInt(clean, 16);
+      return {
+        r: (bigint >> 16) & 255,
+        g: (bigint >> 8) & 255,
+        b: bigint & 255,
+      };
+    };
+
+    const rgbToHsl = ({ r, g, b }) => {
+      const rn = r / 255;
+      const gn = g / 255;
+      const bn = b / 255;
+      const max = Math.max(rn, gn, bn);
+      const min = Math.min(rn, gn, bn);
+      const delta = max - min;
+
+      let h = 0;
+      if (delta !== 0) {
+        if (max === rn) {
+          h = ((gn - bn) / delta) % 6;
+        } else if (max === gn) {
+          h = (bn - rn) / delta + 2;
+        } else {
+          h = (rn - gn) / delta + 4;
+        }
+        h = Math.round(h * 60);
+        if (h < 0) h += 360;
+      }
+
+      const l = (max + min) / 2;
+      const s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
+
+      return {
+        h,
+        s: Math.round(s * 100),
+        l: Math.round(l * 100),
+      };
+    };
+
+    const hslToHex = (h, s, l) => {
+      const sat = s / 100;
+      const light = l / 100;
+      const c = (1 - Math.abs(2 * light - 1)) * sat;
+      const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+      const m = light - c / 2;
+      let rn = 0;
+      let gn = 0;
+      let bn = 0;
+
+      if (h >= 0 && h < 60) {
+        rn = c;
+        gn = x;
+      } else if (h < 120) {
+        rn = x;
+        gn = c;
+      } else if (h < 180) {
+        gn = c;
+        bn = x;
+      } else if (h < 240) {
+        gn = x;
+        bn = c;
+      } else if (h < 300) {
+        rn = x;
+        bn = c;
+      } else {
+        rn = c;
+        bn = x;
+      }
+
+      const toHex = (value) => {
+        const hex = Math.round((value + m) * 255).toString(16);
+        return hex.padStart(2, "0");
+      };
+
+      return `#${toHex(rn)}${toHex(gn)}${toHex(bn)}`;
+    };
+    const hslToRgb = (h, s, l) => {
+      const sat = s / 100;
+      const light = l / 100;
+      const c = (1 - Math.abs(2 * light - 1)) * sat;
+      const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+      const m = light - c / 2;
+      let rn = 0;
+      let gn = 0;
+      let bn = 0;
+
+      if (h >= 0 && h < 60) {
+        rn = c;
+        gn = x;
+      } else if (h < 120) {
+        rn = x;
+        gn = c;
+      } else if (h < 180) {
+        gn = c;
+        bn = x;
+      } else if (h < 240) {
+        gn = x;
+        bn = c;
+      } else if (h < 300) {
+        rn = x;
+        bn = c;
+      } else {
+        rn = c;
+        bn = x;
+      }
+
+      return {
+        r: Math.round((rn + m) * 255),
+        g: Math.round((gn + m) * 255),
+        b: Math.round((bn + m) * 255),
+      };
+    };
+
+    const updatePalette = (baseHsl) => {
+      const { h, s, l } = baseHsl;
+      const steps = [
+        { s: Math.max(20, s - 30), l: Math.min(90, l + 20) },
+        { s: Math.min(95, s + 20), l: Math.max(20, l - 15) },
+        { s: Math.max(10, s - 10), l: Math.max(15, l - 25) },
+        { s: Math.min(90, s + 10), l: Math.min(85, l + 10) },
+        { s: Math.max(35, s - 5), l: Math.max(30, l - 5) },
+        { s: Math.min(100, s + 5), l: Math.min(75, l + 5) },
+      ];
+
+      paletteGrid.innerHTML = "";
+
+      steps.forEach((step, index) => {
+        const hex = hslToHex(h, step.s, step.l);
+        const chip = document.createElement("div");
+        chip.className = "chip";
+        chip.style.background = hex;
+        chip.innerHTML = `<div>Alt ${index + 1}</div><span>${hex}</span>`;
+        chip.addEventListener("click", () => copyText(hex));
+        paletteGrid.appendChild(chip);
+      });
+    };
+
+    const updateHistory = () => {
+      historyList.innerHTML = "";
+      history.slice(-6).reverse().forEach((hex) => {
+        const item = document.createElement("div");
+        item.className = "history-item";
+        item.innerHTML = `
+          <div class="swatch" style="background:${hex}"></div>
+          <div>${hex}</div>
+          <button class="ghost" data-hex="${hex}">Copy</button>
+        `;
+        item.querySelector("button").addEventListener("click", () => copyText(hex));
+        historyList.appendChild(item);
+      });
+    };
+
+    const copyText = (value) => {
+      navigator.clipboard.writeText(value).then(() => showToast(`${value} copied`));
+    };
+
+    const setColor = (hex) => {
+      const rgb = hexToRgb(hex);
+      const hsl = rgbToHsl(rgb);
+      colorWell.style.background = hex;
+      hexValue.textContent = hex;
+      rgbValue.textContent = `${rgb.r}, ${rgb.g}, ${rgb.b}`;
+      hslValue.textContent = `${hsl.h}, ${hsl.s}%, ${hsl.l}%`;
+      hueRange.value = hsl.h;
+      satRange.value = hsl.s;
+      lightRange.value = hsl.l;
+      hueValue.textContent = hsl.h;
+      satValue.textContent = `${hsl.s}%`;
+      lightValue.textContent = `${hsl.l}%`;
+      drawBoard(hsl.l);
+      positionIndicator(hsl.h, hsl.s);
+      updatePalette(hsl);
+    };
+
+    const randomHex = () => {
+      const rand = Math.floor(Math.random() * 0xffffff);
+      return `#${rand.toString(16).padStart(6, "0")}`;
+    };
+
+    const drawBoard = (lightness) => {
+      const rect = rainbowBoardWrap.getBoundingClientRect();
+      const width = Math.max(1, Math.floor(rect.width));
+      const height = Math.max(1, Math.floor(rect.height));
+      rainbowBoard.width = width;
+      rainbowBoard.height = height;
+      const ctx = rainbowBoard.getContext("2d");
+      const image = ctx.createImageData(width, height);
+      const data = image.data;
+
+      for (let y = 0; y < height; y += 1) {
+        const s = Math.round((1 - y / (height - 1)) * 100);
+        for (let x = 0; x < width; x += 1) {
+          const h = Math.round((x / (width - 1)) * 360);
+          const { r, g, b } = hslToRgb(h, s, lightness);
+          const index = (y * width + x) * 4;
+          data[index] = r;
+          data[index + 1] = g;
+          data[index + 2] = b;
+          data[index + 3] = 255;
+        }
+      }
+
+      ctx.putImageData(image, 0, 0);
+    };
+
+    const positionIndicator = (h, s) => {
+      const x = (h / 360) * 100;
+      const y = (1 - s / 100) * 100;
+      boardIndicator.style.left = `${x}%`;
+      boardIndicator.style.top = `${y}%`;
+      boardIndicator.style.background = hslToHex(h, s, parseInt(lightRange.value, 10));
+    };
+
+    const updateFromSliders = () => {
+      const h = parseInt(hueRange.value, 10);
+      const s = parseInt(satRange.value, 10);
+      const l = parseInt(lightRange.value, 10);
+      const hex = hslToHex(h, s, l);
+      setColor(hex);
+    };
+
+    const handleBoardPick = (event) => {
+      const rect = rainbowBoard.getBoundingClientRect();
+      const x = Math.min(Math.max(event.clientX - rect.left, 0), rect.width);
+      const y = Math.min(Math.max(event.clientY - rect.top, 0), rect.height);
+      hueRange.value = Math.round((x / rect.width) * 360);
+      satRange.value = Math.round((1 - y / rect.height) * 100);
+      updateFromSliders();
+    };
+
+    const onPointerMove = (event) => {
+      if (event.buttons !== 1) return;
+      handleBoardPick(event);
+    };
+
+    rainbowBoard.addEventListener("pointerdown", (event) => {
+      rainbowBoard.setPointerCapture(event.pointerId);
+      handleBoardPick(event);
+    });
+    rainbowBoard.addEventListener("pointermove", onPointerMove);
+
+    hueRange.addEventListener("input", updateFromSliders);
+    satRange.addEventListener("input", updateFromSliders);
+    lightRange.addEventListener("input", updateFromSliders);
+
+    window.addEventListener("resize", () => drawBoard(parseInt(lightRange.value, 10)));
+
+    document.getElementById("copyHex").addEventListener("click", () => copyText(hexValue.textContent));
+    document.getElementById("randomColor").addEventListener("click", () => setColor(randomHex()));
+    document.getElementById("saveColor").addEventListener("click", () => {
+      if (!history.includes(hexValue.textContent)) {
+        history.push(hexValue.textContent);
+        updateHistory();
+        showToast("Saved to library");
+      }
+    });
+
+    historyList.addEventListener("click", (event) => {
+      const target = event.target;
+      if (target.dataset && target.dataset.hex) {
+        copyText(target.dataset.hex);
+      }
+    });
+
+    setColor("#ff6b6b");
+  </script>
+</body>
+</html>
+
+
+
+
+
+
